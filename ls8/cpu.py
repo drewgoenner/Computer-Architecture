@@ -2,12 +2,16 @@
 
 import sys
 
+
 class CPU:
     """Main CPU class."""
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        # setup ram, register, and pc
+        self.ram = [0] * 256
+        self.register = [0] * 8
+        self.pc = 0
 
     def load(self):
         """Load a program into memory."""
@@ -23,7 +27,7 @@ class CPU:
             0b00001000,
             0b01000111, # PRN R0
             0b00000000,
-            0b00000001, # HLT
+            0b00000001,  # HLT
         ]
 
         for instruction in program:
@@ -62,4 +66,50 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        #create instructions for LDI, PRN, and HLT programs
+        LDI = 0b10000010
+        PRN = 0b01000111
+        HLT = 0b00000001
+        #set running to True
+        running = True
+
+        #while cpu is running
+        while running:
+            #  set instruction register per step 3
+            IR = self.ram[self.pc]
+
+            # set operand_a to pc+1 per step 3
+            operand_a = self.ram_read(self.pc + 1)
+            # set operand_b to pc+2 per step 3
+            operand_b = self.ram_read(self.pc + 2)
+
+            # if the instruction register is LDI
+            if IR == LDI:
+                #set register of operand_a to operand_b, jump 3 in PC (to PRN currently)
+                self.register[operand_a] = operand_b
+                self.pc +=3
+
+            # if the instruction register is PRN
+            elif IR == PRN:
+                #print the register of operand_a, jump 2 in PC
+                print(self.register[operand_a])
+                self.pc +=2
+
+            # if the instruction register is the halt command
+            elif IR == HLT:
+                #set running to false and exit
+                running = False
+                sys.exit(0)
+            # if anything else, invalid command and quit with failure code 1
+            else:
+                print(f"Invalid Command: {self.ram[self.pc]}")
+                sys.exit(1)
+
+    #ram_read should accept an address to read and return the value
+    def ram_read(self, mar):
+        return self.ram[mar]
+
+    #ram_write should accept a value to write, and the address to write it to
+    def ram_write(self, mdr, mar):
+        self.ram[mar] = mdr
+
