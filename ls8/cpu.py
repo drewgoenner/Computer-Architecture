@@ -52,15 +52,15 @@ class CPU:
             #read the lines
             for line in file:
                 #parse out comments
-                line = line.strip().split("#")
+                line = line.strip().split("#")[0]
                 #cast numbers from strings to ints
-                val = line[0].strip()
+                val = line.strip()
                 #ignore blank lines
                 if line == "":
                     continue
 
                 value = int(val, 2)
-                self.ram[address] = value
+                self.ram[address] =     value
                 address +=1
         
 
