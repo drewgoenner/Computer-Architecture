@@ -8,7 +8,8 @@ PRN = 0b01000111
 HLT = 0b00000001
 MUL = 0b10100010
 PUSH = 0b01000101
-POP = 01000110
+POP = 0b01000110
+SP = 7
 
 
 class CPU:
@@ -25,7 +26,11 @@ class CPU:
         self.branchtable[LDI] = self.handle_ldi
         self.branchtable[PRN] = self.handle_prn
         self.branchtable[MUL] = self.handle_mul
+        self.branchtable[PUSH] = self.handle_push
+        self.branchtable[POP] = self.handle_pop
         self.halted = False
+        #register 7 is reserved as the stack pointer, which is 0xf4 per specs
+        self.register[SP] = 0xf4
 
     def load(self):
         """Load a program into memory."""
@@ -62,7 +67,7 @@ class CPU:
                     continue
 
                 value = int(val, 2)
-                self.ram[address] =     value
+                self.ram[address] = value
                 address +=1
         
 
@@ -97,11 +102,6 @@ class CPU:
 
         print()
 
-    def run(self):
-        """Run the CPU."""
-        
-        #set running to True
-        running = True
 
     #ram_read should accept an address to read and return the value
     def ram_read(self, mar):
@@ -129,6 +129,25 @@ class CPU:
         operand_a = self.ram_read(self.pc + 1)
         operand_b = self.ram_read(self.pc + 2)
         self.alu("MUL", operand_a, operand_b)
+
+    #method to handle push on the stack
+    def handle_push(self):
+        #decrement the SP register
+        self.register[SP] -= 1
+        #set operand_a
+        operand_a = self.ram_read(self.pc + 1)
+        # copy the value in the given register to the address pointed to by SP
+        operand_b = self.register[operand_a]
+        self.ram[self.register[SP]] = operand_b
+
+    #method to handle popping from the stack to the register
+    def handle_pop(self):
+        operand_a = self.ram_read(self.pc + 1)
+        # copy the value from the address pointed to by SP to the given register
+        operand_b = self.ram[self.register[SP]]
+        self.register[operand_a] = operand_b
+        #increment the SP
+        self.register[SP] += 1
 
     def run(self):
         while self.halted != True:
